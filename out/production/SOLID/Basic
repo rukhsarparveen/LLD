@@ -1,0 +1,176 @@
+SOLID = 5 Design Principles
+
+Single Responsibility
+Open–Closed
+Liskov Substitution
+Interface Segregation
+Dependency Inversion
+
+1. Single Responsibility: A class should have only ONE reason to change.
+Real-life analogy
+A restaurant:
+> Chef cooks
+> Cashier handles payments
+> Manager manages staff
+> One person doing all → chaos.
+
+❌ Bad Code (very common)
+class SRP.OrderService {
+    void createOrder() { }
+    void calculatePrice() { }
+    void saveToDB() { }
+    void sendEmail() { }
+}
+This class changes if:
+ >> order changes
+ >> price changes
+ >> DB Changes
+ >> Email Service Changes
+ 4 Reason to change = SRP Broke
+
+class SRP.OrderService {
+    private SRP.PriceCalculator calculator;
+    private SRP.OrderRepository repository;
+    private EmailService emailService;
+
+    void placeOrder(SRP.Order order) {
+        calculator.calculate(order);
+        repository.save(order);
+        emailService.send(order);
+    }
+}
+class SRP.PriceCalculator { }
+class SRP.OrderRepository { }
+class EmailService { }
+✔ Each class has one responsibility
+
+
+🔴 Bad Code Example (Typical)
+class UserService {
+
+    void registerUser(SRP.User user) {
+        if (!user.getEmail().contains("@")) {
+            throw new RuntimeException("Invalid email");
+        }
+
+        // save user
+        System.out.println("Saving user to DB");
+
+        // send email
+        System.out.println("Sending welcome email");
+    }
+}
+
+🚨 What’s wrong?
+
+This class changes if:
+Validation rules change
+DB changes
+Email service changes
+👉 3 reasons to change = SRP broken
+
+🟢 Correct SRP Design
+class SRP.UserValidator {
+    void validate(SRP.User user) { }
+}
+class SRP.UserRepository {
+    void save(SRP.User user) { }
+}
+class EmailService {
+    void sendWelcomeEmail(SRP.User user) { }
+}
+class UserRegistrationService {
+    private SRP.UserValidator validator;
+    private SRP.UserRepository repository;
+    private EmailService emailService;
+    void register(SRP.User user) {
+        validator.validate(user);
+        repository.save(user);
+        emailService.sendWelcomeEmail(user);
+    }
+}
+✔ Each class has ONE job
+✔ Easy to test
+✔ Easy to change
+
+SRP is not about lines of code, it’s about change impact
+
+
+//////////////////////////////////////////////////////////////////
+
+🟢 Open–Closed Principle (OCP)
+🔹 Definition
+Software entities should be open for extension, but closed for modification.
+In simple words:
+❌ Don’t edit working code to add features
+✅ Add new behavior by adding new code
+🔹 Why OCP Exists (Real Pain)
+Imagine your app is in production.
+You change:
+if (type.equals("EMAIL")) ...
+💥 Suddenly payments break
+💥 Hotfix at 2 AM
+💥 Everyone is angry
+OCP prevents this.
+🔴 OCP VIOLATION (Very Common)
+❌ Naive Notification System
+class NotificationService {
+    void send(String type, User user) {
+        if (type.equals("EMAIL")) {
+            System.out.println("Email sent");
+        } else if (type.equals("SMS")) {
+            System.out.println("SMS sent");
+        } else if (type.equals("PUSH")) {
+            System.out.println("Push sent");
+        }
+    }
+}
+
+🚨 Problems
+Add WhatsApp → modify this class
+Remove SMS → modify this class
+Violates OCP badly
+🟢 OCP-Correct Design
+Step 1: Introduce abstraction
+interface Notification {
+    void send(User user);
+}
+
+Step 2: One class per behavior
+class EmailNotification implements Notification {
+    public void send(User user) {
+        System.out.println("Email sent to " + user.getName());
+    }
+}
+
+class SmsNotification implements Notification {
+    public void send(User user) {
+        System.out.println("SMS sent to " + user.getName());
+    }
+}
+Step 3: Service depends on abstraction
+class NotificationService {
+    private Notification notification;
+    NotificationService(Notification notification) {
+        this.notification = notification;
+    }
+    void notify(User user) {
+        notification.send(user);
+    }
+}
+🔥 Result
+Add WhatsApp → create new class
+No existing code touched
+OCP satisfied
+🏗 Real-World Example (Important)
+Payment System (BookMyShow / Uber)
+Bad:
+if (paymentType.equals("UPI")) ...
+Good:
+interface PaymentMethod {
+    void pay();
+}
+Add CryptoPayment tomorrow → zero changes.
+🧠 OCP Interview Sentence (Memorize This)
+“We achieve OCP using polymorphism and abstractions so that new behavior is added by extension, not modification.”
+
