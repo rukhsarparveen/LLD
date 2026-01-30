@@ -177,4 +177,139 @@ Add CryptoPayment tomorrow → zero changes.
 4️⃣ Hidden Interview Question (You Can Answer This Now)
 Q: “How is this different from Strategy Pattern?”
 Answer (Golden):
-“OCP is a principle, and Strategy Patter
+“OCP is a principle, and Strategy Pattern is one way to implement it.
+ Here, each PaymentMethod is a strategy selected at runtime.”
+
+
+ 🟢 Liskov Substitution Principle (LSP)
+ 🔹 Definition (Formal)
+ Objects of a superclass should be replaceable with objects of its subclasses without breaking the program.
+ 🔹 Human version
+ If a class B extends A, then anywhere A is expected, B should work without surprises.
+ No crashes.
+ No “not supported”.
+ No behavior change.
+ 🔥 Why LSP Exists (Real Pain)
+ You write:
+ processPayment(Payment payment)
+ Someone passes a subclass.
+ 💥 Runtime exception
+ 💥 Hidden bug
+ 💥 “But it compiled!!”
+ LSP exists to prevent lying inheritance.
+ 🔴 Classic LSP Violation (Very Important)
+ ❌ Wrong Design
+ class Bird {
+     void fly() {
+         System.out.println("Flying");
+     }
+ }
+
+ class Penguin extends Bird {
+     @Override
+     void fly() {
+         throw new UnsupportedOperationException("Penguins can't fly");
+     }
+ }
+
+ 🚨 Why this violates LSP
+ Penguin IS NOT substitutable for Bird
+ Any code expecting Bird.fly() will break
+ 👉 Inheritance used incorrectly
+ 🟢 Correct LSP Design
+ Step 1: Identify real behavior
+ Not all birds fly.
+ Step 2: Split abstraction
+ interface Bird { }
+
+ interface FlyingBird extends Bird {
+     void fly();
+ }
+
+ Step 3: Correct implementations
+ class Sparrow implements FlyingBird {
+     public void fly() {
+         System.out.println("Sparrow flying");
+     }
+ }
+
+ class Penguin implements Bird {
+     void swim() {
+         System.out.println("Penguin swimming");
+     }
+ }
+ ✔ No fake behavior
+ ✔ No exceptions
+ ✔ LSP respected
+ 🧠 LSP Golden Rule (Memorize)
+ If a subclass throws “not supported”, checks type, or weakens behavior → LSP is broken.
+ 🔴 Another Common LSP Violation (Business Logic)
+ ❌ Bad Example
+ class Account {
+     void withdraw(double amount) { }
+ }
+ class FixedDepositAccount extends Account {
+     @Override
+     void withdraw(double amount) {
+         throw new RuntimeException("Withdrawal not allowed");
+     }
+ }
+ 💥 BOOM — LSP violation.
+ 🟢 Correct Design
+ interface WithdrawableAccount {
+     void withdraw(double amount);
+ }
+ class SavingsAccount implements WithdrawableAccount { }
+ class FixedDepositAccount {
+     // no withdraw
+ }
+ ✔ Behavior matches abstraction.
+ 🏗 Real-World Example (Very Interview-Relevant)
+ Ride Booking App 🚕🏍️
+ ❌ Wrong:
+ class Ride {
+     int getSeatCount() { return 4; }
+ }
+
+ class BikeRide extends Ride {
+     int getSeatCount() { return 1; }
+ }
+ 💥 Code expecting 4 seats breaks.
+ ✅ Correct:
+ interface Ride {
+     int getSeatCount();
+ }
+
+ class BikeRide implements Ride {
+     public int getSeatCount() { return 1; }
+ }
+
+ class CarRide implements Ride {
+     public int getSeatCount() { return 4; }
+ }
+ ✔ Fully substitutable.
+ 🧠 How Interviewers Check LSP
+ They look for:
+ instanceof
+ throw new UnsupportedOperationException
+ “Special case” logic in subclasses
+ If they see that → ❌ LSP broken.
+ 🛠 YOUR LSP ASSIGNMENT
+ 🎯 Problem: Document Processing System
+ Requirements:
+ System processes documents and prints them.
+ Types:
+ PDF document
+ Word document
+ Read-only document (cannot be printed)
+ ❌ WRONG Approach (Do NOT do this)
+ class Document {
+     void print() { }
+ }
+ class ReadOnlyDocument extends Document {
+     void print() {
+         throw new RuntimeException("Cannot print");
+     }
+ }
+
+ 🚫 This violates LSP.
